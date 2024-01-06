@@ -6,27 +6,24 @@ configDotenv();
 
 const app = express();
 
-  try {
-    await psql`\copy pl_data FROM '/openpowerlifting.csv' WITH (FORMAT CSV, HEADER);`
-  }
-  catch(error){
-    console.log('Error importing csv:', error);
-  }
-
-
-
-// Define a simple API endpoint
-app.get('/api', async (req, res) => {
-  const { rows } = await sql`SELECT * FROM lifters;`;
+app.get('/sample', async (req, res) => {
+  const { rows } = await sql`SELECT * FROM powerlifting_results LIMIT 100;`;
   res.json({ rows });
 });
 
-// Set up a default route
+app.get('/api', async (req, res) => {
+  const lifter1 = req.query.lifter1;
+  const lifter2 = req.query.lifter2;
+
+  const lifter1Data = await sql`SELECT * FROM powerlifting_results WHERE name = ${lifter1};`;
+  const lifter2Data = await sql`SELECT * FROM powerlifting_results WHERE name = ${lifter2};`;
+  res.json({ lifter1Data, lifter2Data });
+});
+
 app.get('/', (req, res) => {
   res.send('Server is running.');
 });
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
